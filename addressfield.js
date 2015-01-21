@@ -280,7 +280,6 @@ function addressfield_assemble_form_state_into_field(entity_type, bundle,
     var widgets = addressfield_get_components();
     $.each(widgets, function(index, widget) {
         var widget_id = field_key.element_id + '-' + widget;
-        dpm('looking for widget: ' + widget_id);
         result[widget] = $('#' + widget_id).val();
     });
     return result;
