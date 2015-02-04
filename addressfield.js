@@ -290,10 +290,21 @@ function addressfield_assemble_form_state_into_field(entity_type, bundle,
 }
 
 /**
- * Themes an address field.
+ * Themes an address field. To provide a country specific theme, see the
+ * theme_addressfield_US() example below. Make a copy of it, and replace 'US'
+ * with your country code, then style it as needed.
  */
 function theme_addressfield(variables) {
   try {
+    
+    // Allow for country specific themes.
+    var function_name = 'theme_addressfield_' + variables.country;
+    if (drupalgap_function_exists(function_name)) {
+      var fn = window[function_name];
+      return fn(variables);
+    }
+
+    // Default theme.
     var html = '';
     if (variables.organisation_name && variables.organisation_name != '') {
       html += variables.organisation_name + '<br />';
@@ -335,8 +346,99 @@ function theme_addressfield(variables) {
       html += variables.country;
     }
     return html;
+
   }
   catch (error) { console.log('theme_addressfield - ' + error); }
+}
+
+/**
+ * Theme's a typical address field's name.
+ */
+function theme_addressfield_name(variables) {
+  try {
+    var html = '';
+    if (variables.organisation_name && variables.organisation_name != '') {
+      html += variables.organisation_name + '<br />';
+    }
+    if (variables.name_line && variables.name_line != '') {
+      html += variables.name_line + '<br />';
+    }
+    else {
+      if (variables.first_name && variables.first_name != '') {
+        html += variables.first_name;
+        if (variables.last_name && variables.last_name != '') {
+          html += ' ';
+        }
+      }
+      if (variables.last_name && variables.last_name != '') {
+        html += variables.last_name + '<br />';
+      }
+    }
+    return html;
+  }
+  catch (error) { console.log('theme_addressfield_name - ' + error); }
+}
+
+/**
+ * German address field theme.
+ */
+function theme_addressfield_DE(variables) {
+  try {
+    var html = theme_addressfield_name(variables);
+    if (variables.thoroughfare && variables.thoroughfare != '') {
+      html += variables.thoroughfare;
+      if (variables.premise && variables.premise != '') {
+        html += ' - ';
+      }
+      else {
+        html += '<br />';
+      }
+    }
+    if (variables.premise && variables.premise != '') {
+      html += variables.premise + '<br />';
+    }
+    html += variables.country + '-';
+    if (variables.postal_code && variables.postal_code != '') {
+      html += variables.postal_code + ' ';
+    }
+    if (variables.locality && variables.locality != '') {
+      html += variables.locality;
+    }
+    return html;
+  }
+  catch (error) { console.log('theme_addressfield_US - ' + error); }
+}
+
+/**
+ * United States address field theme.
+ */
+function theme_addressfield_US(variables) {
+  try {
+    var html = theme_addressfield_name(variables);
+    if (variables.thoroughfare && variables.thoroughfare != '') {
+      html += variables.thoroughfare + '<br />';
+    }
+    if (variables.premise && variables.premise != '') {
+      html += variables.premise + '<br />';
+    }
+    if (variables.locality && variables.locality != '') {
+      html += variables.locality;
+      if (variables.administrative_area && variables.administrative_area != '') {
+        html += ', ';
+      }
+    }
+    if (variables.administrative_area && variables.administrative_area != '') {
+      html += variables.administrative_area;
+      if (variables.postal_code && variables.postal_code != '') {
+        html += ' ';
+      }
+    }
+    if (variables.postal_code && variables.postal_code != '') {
+      html += variables.postal_code + '<br />';
+    }
+    return html;
+  }
+  catch (error) { console.log('theme_addressfield_US - ' + error); }
 }
 
 function country_get_list(options) {
