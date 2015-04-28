@@ -51,21 +51,21 @@ function addressfield_field_widget_form(form, form_state, field, instance, langc
     //console.log(field);
     //console.log(instance);
     //console.log(items[delta]);
-    
+
     // @TODO we need more unique ids because the node add form vs the node edit
     // form has colliding ids when first editing a node, then creating a node
     // later, the latter form will inherit the country code from the prior.
-    
+
     // Is this a new or existing entity?
     _address_field_new_entity = form.arguments[0][entity_primary_key(form.entity_type)] ? false : true;
-    
+
     // Extract the countries. If it's an array and empty, that means every
     // country is allowed and we'll need to grab them from the server. If it's
     // an object, then only the countries listed within the object are valid,
     // and they are listed only as country codes as the property name and value.
     var countries = instance.widget.settings.available_countries;
     var country_widget_id = items[delta].id + '-country';
-    
+
     // How many available countries are there?
     var country_count = 0; // we'll default to all countries, aka zero
     for (var country_code in countries) {
@@ -85,7 +85,7 @@ function addressfield_field_widget_form(form, form_state, field, instance, langc
           item: items[delta].item
       });
     }
-    
+
     // What's the default country? An empty string means "none", otherwise it
     // will be the country code, or site_default. If it was an emptry string,
     // and there is only one country available, use it.
@@ -200,23 +200,23 @@ function _addressfield_field_widget_form_country_pageshow(options) {
           ) {
             var item = _address_field_items[options.field_name][parseInt(options.delta)].item;
             var select = $('#' + options.country_widget_id);
-            select.val(item.country).selectmenu("refresh", true).change();
+            select.val(item.country).selectmenu('refresh', true).change();
           }
 
           // We didn't have an existing country, but if we have a default
           // country use it and fire the change event for the country select.
           else if (!empty(options.default_country)) {
-            $('#' + options.country_widget_id).val(options.default_country).selectmenu("refresh", true).change();
+            $('#' + options.country_widget_id).val(options.default_country).selectmenu('refresh', true).change();
           }
-          
+
           // We don't have an existing country, and we don't have a default
           // country, so if this field is required immediately trigger the
           // change event on the first available country.
           else if (empty(options.default_country) && options.required) {
-            $('#' + options.country_widget_id).selectmenu("refresh", true).change();
+            $('#' + options.country_widget_id).selectmenu('refresh', true).change();
           }
 
-        }                                                                     
+        }
     });
   }
   catch (error) { console.log('_addressfield_field_widget_form_country_pageshow - ' + error); }
@@ -254,7 +254,7 @@ function addressfield_services_postprocess(options, result) {
                   var selector = '#' + id + '-' + component;
                   $(selector).val(item[component]);
                   if (component == 'administrative_area') {
-                    $(selector).selectmenu("refresh", true).change();
+                    $(selector).selectmenu('refresh', true).change();
                   }
               });
           });
@@ -416,7 +416,7 @@ function addressfield_assemble_form_state_into_field(entity_type, bundle,
  */
 function theme_addressfield(variables) {
   try {
-    
+
     // Allow for country specific themes.
     var function_name = 'theme_addressfield_' + variables.country;
     if (drupalgap_function_exists(function_name)) {
@@ -523,7 +523,7 @@ function theme_addressfield_AT(variables) {
     if (variables.locality && variables.locality != '') {
       html += variables.locality;
     }
-    html += '<br />Austria'; 
+    html += '<br />Austria';
     return html;
   }
   catch (error) { console.log('theme_addressfield_US - ' + error); }
