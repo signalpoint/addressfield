@@ -172,7 +172,7 @@ function addressfield_field_widget_form(form, form_state, field, instance, langc
     });
 
   }
-  catch (error) { console.log('hook_field_widget_form - ' + error); }
+  catch (error) { console.log('addressfield_field_widget_form - ' + error); }
 }
 
 /**
