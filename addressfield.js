@@ -57,7 +57,7 @@ function addressfield_field_widget_form(form, form_state, field, instance, langc
     // later, the latter form will inherit the country code from the prior.
 
     // Is this a new or existing entity?
-    _address_field_new_entity = form.arguments[0][entity_primary_key(form.entity_type)] ? false : true;
+    _address_field_new_entity = form.arguments.length && form.arguments[0][entity_primary_key(form.entity_type)] ? false : true;
 
     // Extract the countries. If it's an array and empty, that means every
     // country is allowed and we'll need to grab them from the server. If it's
