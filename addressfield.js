@@ -114,7 +114,8 @@ function addressfield_field_widget_form(form, form_state, field, instance, langc
           "'" + items[delta].id + "'," +
           delta + "," +
           "'" + field.field_name + "'" +
-        ")"
+        ")",
+        entity_type: form.entity_type
       }
     };
     if (empty(default_country) && !instance.required) {
@@ -284,26 +285,34 @@ function _addressfield_field_widget_form_country_onchange(select, widget_id, del
           var html = '';
           var components = [];
 
-          // thoroughfare
-          var widget = {
-            theme: 'textfield',
-            attributes: {
-              placeholder: 'Address 1',
-              id: widget_id + '-thoroughfare'
-            },
-            required: true
-          };
-          components.push(widget);
+          // Grab the field instance.
+          var instance = drupalgap_field_info_instance($(select).attr('entity_type'), field_name);
 
-          // premise
-          var widget = {
-            theme: 'textfield',
-            attributes: {
-              placeholder: 'Address 2',
-              id: widget_id + '-premise'
-            }
-          };
-          components.push(widget);
+          // If we're not hiding the street components...
+          if (instance.widget.settings.format_handlers['address-hide-street'] == 0) {
+
+            // thoroughfare
+            var widget = {
+              theme: 'textfield',
+              attributes: {
+                placeholder: 'Address 1',
+                id: widget_id + '-thoroughfare'
+              },
+              required: true
+            };
+            components.push(widget);
+
+            // premise
+            var widget = {
+              theme: 'textfield',
+              attributes: {
+                placeholder: 'Address 2',
+                id: widget_id + '-premise'
+              }
+            };
+            components.push(widget);
+
+          }
 
           // locality
           var widget = {
@@ -323,10 +332,10 @@ function _addressfield_field_widget_form_country_onchange(select, widget_id, del
               options: administrative_areas,
               attributes: {
                 id: widget_id + '-administrative_area'
-              }
+              },
+              required: _addressfield_widget_field_required(address_format, 'administrative_area')
             };
             components.push(widget);
-            //_addressfield_widget_field_required(address_format, 'administrative_area')
           }
 
           // postal_code
@@ -361,14 +370,7 @@ function _addressfield_field_widget_form_country_onchange(select, widget_id, del
  */
 function _addressfield_widget_field_required(address_format, field_name) {
   try {
-    var result = false;
-    $.each(address_format.required_fields, function(index, _field_name) {
-        if (field_name == _field_name) {
-          result = true;
-          return false;
-        }
-    });
-    return result;
+    return in_array(field_name, address_format.required_fields);
   }
   catch (error) { console.log('_addressfield_widget_field_required - ' + error); }
 }
