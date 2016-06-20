@@ -42,6 +42,52 @@ function addressfield_field_value_callback(id, element) {
 }
 
 /**
+ * Used to place an address field onto a non entity form.
+ */
+function theme_addressfield_form_element(variables) {
+  console.log(variables);
+
+  var country_widget_id = variables.id + '-country';
+
+  _address_field_items[variables.name] = [];
+
+  // Prepare the child element.
+  var child = {
+    //theme: 'select',
+    title: 'Country',
+    options: {},
+    attributes: {
+      id: country_widget_id,
+      onchange: "_addressfield_field_widget_form_country_onchange(this, " +
+      "'" + variables.id + "'," +
+      0 + "," +
+      "'" + variables.name + "'" +
+      ")"
+    }
+  };
+  if (empty(variables.default_country) && !variables.required) {
+    child.options[''] = '- None -';
+  }
+
+  var countries = _addressfield_countries;
+
+  // All countries allowed.
+  return theme('select', child) + '<div id="' + country_widget_id + '-widget"></div>' + drupalgap_jqm_page_event_script_code({
+    page_id: drupalgap_get_page_id(),
+    jqm_page_event: 'pageshow',
+    jqm_page_event_callback: '_addressfield_field_widget_form_country_pageshow',
+    jqm_page_event_args: JSON.stringify({
+      country_widget_id: country_widget_id,
+      delta: 0,
+      field_name: variables.name,
+      default_country: variables.default_country,
+      required: variables.required
+    })
+  }) + bl('edit', 'user/' + Drupal.user.uid + '/edit');
+
+}
+
+/**
  * Implements hook_field_widget_form().
  */
 function addressfield_field_widget_form(form, form_state, field, instance, langcode, items, delta, element) {
@@ -87,7 +133,7 @@ function addressfield_field_widget_form(form, form_state, field, instance, langc
     }
 
     // What's the default country? An empty string means "none", otherwise it
-    // will be the country code, or site_default. If it was an emptry string,
+    // will be the country code, or site_default. If it was an empty string,
     // and there is only one country available, use it.
     // @TODO - properly handle the site_default country. This will probably need
     // to be delivered via drupalgap system connect and made available to the
@@ -166,7 +212,7 @@ function addressfield_field_widget_form(form, form_state, field, instance, langc
     }
 
     // Finally push the child onto the element and place an empty container for
-    // the country's widet to be injected dynamically.
+    // the country's widget to be injected dynamically.
     items[delta].children.push(child);
     items[delta].children.push({
         markup: '<div id="' + country_widget_id + '-widget"></div>'
@@ -286,10 +332,11 @@ function _addressfield_field_widget_form_country_onchange(select, widget_id, del
           var components = [];
 
           // Grab the field instance.
-          var instance = drupalgap_field_info_instance($(select).attr('entity_type'), field_name);
+          var instance = field_name.indexOf('field_') != -1 ?
+              drupalgap_field_info_instance($(select).attr('entity_type'), field_name) : null;
 
           // If we're not hiding the street components...
-          if (instance.widget.settings.format_handlers['address-hide-street'] == 0) {
+          if (instance && instance.widget.settings.format_handlers['address-hide-street'] == 0) {
 
             // thoroughfare
             var widget = {
