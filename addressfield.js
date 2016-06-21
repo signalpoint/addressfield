@@ -36,7 +36,17 @@ function addressfield_field_value_callback(id, element) {
       if (typeof val !== 'undefined') { values.push(val); }
     }
     if (values.length == 0 || (values.length == 1 && empty(values[0]))) { return null; }
-    return values.join(',');
+    if (element.is_field) { return values.join(','); }
+    else {
+      var result = {};
+      var widgets = addressfield_get_components();
+      $.each(widgets, function(index, widget) {
+        var widget_id = element.id + '-' + widget;
+        result[widget] = $('#' + widget_id).val();
+      });
+      return result;
+    }
+
   }
   catch (error) { console.log('addressfield_field_value_callback - ' + error); }
 }
@@ -45,31 +55,33 @@ function addressfield_field_value_callback(id, element) {
  * Used to place an address field onto a non entity form.
  */
 function theme_addressfield_form_element(variables) {
-  console.log(variables);
 
+  // Determine the country widget id and init the global array for this element.
   var country_widget_id = variables.id + '-country';
-
   _address_field_items[variables.name] = [];
 
+  // If no value callback was provided, set it to the default.
+  if (!variables.element.value_callback) {
+    variables.element.value_callback = 'addressfield_field_value_callback';
+  }
+
   // Prepare the child element.
+  var onchange = "_addressfield_field_widget_form_country_onchange(this, " +
+      "'" + variables.id + "'," +
+      0 + "," +
+      "'" + variables.name + "'" +
+  ")";
   var child = {
-    //theme: 'select',
     title: 'Country',
     options: {},
     attributes: {
       id: country_widget_id,
-      onchange: "_addressfield_field_widget_form_country_onchange(this, " +
-      "'" + variables.id + "'," +
-      0 + "," +
-      "'" + variables.name + "'" +
-      ")"
+      onchange: onchange
     }
   };
   if (empty(variables.default_country) && !variables.required) {
     child.options[''] = '- None -';
   }
-
-  var countries = _addressfield_countries;
 
   // All countries allowed.
   return theme('select', child) + '<div id="' + country_widget_id + '-widget"></div>' + drupalgap_jqm_page_event_script_code({
@@ -83,7 +95,7 @@ function theme_addressfield_form_element(variables) {
       default_country: variables.default_country,
       required: variables.required
     })
-  }) + bl('edit', 'user/' + Drupal.user.uid + '/edit');
+  });
 
 }
 
@@ -334,6 +346,8 @@ function _addressfield_field_widget_form_country_onchange(select, widget_id, del
           // Grab the field instance.
           var instance = field_name.indexOf('field_') != -1 ?
               drupalgap_field_info_instance($(select).attr('entity_type'), field_name) : null;
+
+          // @TODO - need to add support for name components!
 
           // If we're not hiding the street components...
           if (instance && instance.widget.settings.format_handlers['address-hide-street'] == 0) {
