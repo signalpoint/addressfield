@@ -84,18 +84,19 @@ function theme_addressfield_form_element(variables) {
   }
 
   // All countries allowed.
-  return theme('select', child) + '<div id="' + country_widget_id + '-widget"></div>' + drupalgap_jqm_page_event_script_code({
-    page_id: drupalgap_get_page_id(),
-    jqm_page_event: 'pageshow',
-    jqm_page_event_callback: '_addressfield_field_widget_form_country_pageshow',
-    jqm_page_event_args: JSON.stringify({
-      country_widget_id: country_widget_id,
-      delta: 0,
-      field_name: variables.name,
-      default_country: variables.default_country,
-      required: variables.required
-    })
-  });
+  return theme('select', child) + '<div id="' + country_widget_id + '-widget' + '"></div>' +
+      drupalgap_jqm_page_event_script_code({
+        page_id: drupalgap_get_page_id(),
+        jqm_page_event: 'pageshow',
+        jqm_page_event_callback: '_addressfield_field_widget_form_country_pageshow',
+        jqm_page_event_args: JSON.stringify({
+          country_widget_id: country_widget_id,
+          delta: 0,
+          field_name: variables.name,
+          default_country: variables.default_country,
+          required: variables.required
+        })
+      });
 
 }
 
