@@ -2,10 +2,17 @@
  *
  */
 function addressfield_get_components() {
-  try {
-    return ['country', 'thoroughfare', 'premise', 'locality', 'administrative_area', 'postal_code'];
-  }
-  catch (error) { console.log('addressfield_get_components - ' + error); }
+    return [
+      'name_line',
+      'first_name',
+      'last_name',
+      'country',
+      'thoroughfare',
+      'premise',
+      'locality',
+      'administrative_area',
+      'postal_code'
+    ];
 }
 
 /**
@@ -278,6 +285,7 @@ function addressfield_field_value_callback(id, element) {
 
 var _address_field_new_entity = false;
 var _address_field_items = {};
+var _addressfield_elements = {};
 
 // @credit https://gist.github.com/maephisto/9228207
 var _addressfield_countries = {
@@ -556,6 +564,8 @@ function _addressfield_widget_field_required(address_format, field_name) {
  */
 function _addressfield_field_widget_form_country_onchange(select, widget_id, delta, field_name) {
   try {
+    //console.log('_addressfield_field_widget_form_country_onchange', arguments);
+    var variables = _addressfield_elements[widget_id];
     var country_code = $(select).val();
     addressfield_get_address_format_and_administrative_areas(country_code, {
       success: function(results) {
@@ -575,68 +585,118 @@ function _addressfield_field_widget_form_country_onchange(select, widget_id, del
         var instance = field_name.indexOf('field_') != -1 ?
             drupalgap_field_info_instance($(select).attr('entity_type'), field_name) : null;
 
+        //console.log(address_format, administrative_areas, instance, _addressfield_elements);
+
         // @TODO - need to add support for name components!
 
-        // If we're not hiding the street components...
+        // Determine which components will be hidden, if any.
+        var showNameLine = false;
+        var showFirstName = false;
+        var showLastName = false;
+        var showThoroughfare = false;
+        var showPremise = false;
         if (instance && instance.widget.settings.format_handlers['address-hide-street'] == 0) {
+          showThoroughfare = true;
+          showPremise = true;
+        }
+        else if (variables.components) {
+          showNameLine = typeof variables.components.name_line !== 'undefined';
+          showFirstName = typeof variables.components.first_name !== 'undefined';
+          showLastName = typeof variables.components.last_name !== 'undefined';
+          showThoroughfare = typeof variables.components.thoroughfare !== 'undefined';
+          showPremise = typeof variables.components.premise !== 'undefined';
+        }
 
-          // thoroughfare
-          var widget = {
+        // Name line
+        if (showNameLine && !showFirstName && !showLastName) {
+          components.push({
             theme: 'textfield',
             attributes: {
-              placeholder: 'Address 1',
+              placeholder: t('Full name'),
+              id: widget_id + '-name_line'
+            },
+            required: true
+          });
+        }
+
+        // First name
+        if (showFirstName && !showNameLine) {
+          components.push({
+            theme: 'textfield',
+            attributes: {
+              placeholder: t('First name'),
+              id: widget_id + '-first_name'
+            },
+            required: true
+          });
+        }
+
+        // Last name
+        if (showLastName && !showNameLine) {
+          components.push({
+            theme: 'textfield',
+            attributes: {
+              placeholder: t('Last name'),
+              id: widget_id + '-last_name'
+            },
+            required: true
+          });
+        }
+
+        // thoroughfare
+        if (showThoroughfare) {
+          components.push({
+            theme: 'textfield',
+            attributes: {
+              placeholder: t('Address 1'),
               id: widget_id + '-thoroughfare'
             },
             required: true
-          };
-          components.push(widget);
+          });
+        }
 
-          // premise
-          var widget = {
+        // premise
+        if (showPremise) {
+          components.push({
             theme: 'textfield',
             attributes: {
-              placeholder: 'Address 2',
+              placeholder: t('Address 2'),
               id: widget_id + '-premise'
             }
-          };
-          components.push(widget);
-
+          });
         }
 
         // locality
-        var widget = {
+        components.push({
           theme: 'textfield',
           attributes: {
             placeholder: address_format.locality_label,
             id: widget_id + '-locality'
           },
           required: _addressfield_widget_field_required(address_format, 'locality')
-        };
-        components.push(widget);
+        });
 
         // administrative_area
         if (administrative_areas) {
-          var widget = {
+          components.push({
             theme: 'select',
             options: administrative_areas,
             attributes: {
               id: widget_id + '-administrative_area'
             },
             required: _addressfield_widget_field_required(address_format, 'administrative_area')
-          };
-          components.push(widget);
+          });
         }
 
         // postal_code
-        var widget = {
+        components.push({
           theme: 'textfield',
           attributes: {
             placeholder: address_format.postal_code_label,
             id: widget_id + '-postal_code'
           },
           required: _addressfield_widget_field_required(address_format, 'postal_code')
-        };
-        components.push(widget);
+        });
 
         // Now render each widget then inject them into the container.
         $.each(components, function(index, widget) {
@@ -766,6 +826,8 @@ function addressfield_get_address_format_and_administrative_areas(country_code, 
  * Used to place an address field onto a non entity form.
  */
 function theme_addressfield_form_element(variables) {
+
+  _addressfield_elements[variables.id] = variables;
 
   // Determine the country widget id and init the global array for this element.
   var country_widget_id = variables.id + '-country';
