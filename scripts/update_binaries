@@ -1,0 +1,7 @@
+#!/bin/bash
+
+git add addressfield.js
+git add addressfield.min.js
+git commit -m "Update binaries."
+git push origin 7.x-1.x
+
