@@ -35,7 +35,26 @@ form.elements['my-addressfield'] = {
 };
 ```
 
-### Injecting existing values into form element
+### Custom Components on Form Elements
+
+Specify which additional components show up on the form element by supplying `components` machine names:
+
+```
+form.elements['my-addressfield'] = {
+  /* ... */
+  components: {
+    name_line: true, // OR
+    // first_name: true, // AND
+    // last_name: true,
+    thoroughfare: true,
+    premise: true
+  }
+  /* ... */
+};
+```
+
+## Injecting existing values into form element
+
 It's a little tricky to get existing address field entity values into one of these elements. To do it, post process an address field service call when viewing your form, then use the injection helper function like so:
 ```
 /**
