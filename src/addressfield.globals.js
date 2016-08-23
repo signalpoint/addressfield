@@ -1,5 +1,6 @@
 var _address_field_new_entity = false;
 var _address_field_items = {};
+var _addressfield_elements = {};
 
 // @credit https://gist.github.com/maephisto/9228207
 var _addressfield_countries = {

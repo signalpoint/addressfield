@@ -2,10 +2,17 @@
  *
  */
 function addressfield_get_components() {
-  try {
-    return ['country', 'thoroughfare', 'premise', 'locality', 'administrative_area', 'postal_code'];
-  }
-  catch (error) { console.log('addressfield_get_components - ' + error); }
+    return [
+      'name_line',
+      'first_name',
+      'last_name',
+      'country',
+      'thoroughfare',
+      'premise',
+      'locality',
+      'administrative_area',
+      'postal_code'
+    ];
 }
 
 /**

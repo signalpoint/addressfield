@@ -3,6 +3,8 @@
  */
 function theme_addressfield_form_element(variables) {
 
+  _addressfield_elements[variables.id] = variables;
+
   // Determine the country widget id and init the global array for this element.
   var country_widget_id = variables.id + '-country';
   _address_field_items[variables.name] = [];
