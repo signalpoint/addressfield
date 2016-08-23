@@ -1,10 +1,24 @@
 addressfield
 ============
 
-The Address Field module for DrupalGap. For usage, install the following module
-on your Drupal site, and follow it's [README.txt](http://cgit.drupalcode.org/services_addressfield/tree/README.txt) on its project homepage:
+The Address Field module for DrupalGap.
+
+
+# Setup
+
+For usage, install the following module on your Drupal site, and follow it's [README.txt](http://cgit.drupalcode.org/services_addressfield/tree/README.txt) on its project homepage:
 
 https://www.drupal.org/project/services_addressfield
+
+## settings.js
+
+Enable the module in DrupalGap by adding it to the `settings.js` file:
+
+```
+Drupal.modules.contrib['addressfield'] = {
+  minified: true
+};
+```
 
 ## Form Element
 
