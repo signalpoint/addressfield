@@ -75,7 +75,8 @@ function _addressfield_field_widget_form_country_onchange(select, widget_id, del
             theme: 'textfield',
             attributes: {
               placeholder: t('Full name'),
-              id: widget_id + '-name_line'
+              id: widget_id + '-name_line',
+              class: 'addressfield-name-line'
             },
             required: true
           });
@@ -87,7 +88,8 @@ function _addressfield_field_widget_form_country_onchange(select, widget_id, del
             theme: 'textfield',
             attributes: {
               placeholder: t('First name'),
-              id: widget_id + '-first_name'
+              id: widget_id + '-first_name',
+              class: 'addressfield-first-name'
             },
             required: true
           });
@@ -99,7 +101,8 @@ function _addressfield_field_widget_form_country_onchange(select, widget_id, del
             theme: 'textfield',
             attributes: {
               placeholder: t('Last name'),
-              id: widget_id + '-last_name'
+              id: widget_id + '-last_name',
+              class: 'addressfield-last-name'
             },
             required: true
           });
@@ -111,7 +114,8 @@ function _addressfield_field_widget_form_country_onchange(select, widget_id, del
             theme: 'textfield',
             attributes: {
               placeholder: t('Address 1'),
-              id: widget_id + '-thoroughfare'
+              id: widget_id + '-thoroughfare',
+              class: 'addressfield-thoroughfare'
             },
             required: true
           });
@@ -123,7 +127,8 @@ function _addressfield_field_widget_form_country_onchange(select, widget_id, del
             theme: 'textfield',
             attributes: {
               placeholder: t('Address 2'),
-              id: widget_id + '-premise'
+              id: widget_id + '-premise',
+              class: 'addressfield-premise'
             }
           });
         }
@@ -133,7 +138,8 @@ function _addressfield_field_widget_form_country_onchange(select, widget_id, del
           theme: 'textfield',
           attributes: {
             placeholder: address_format.locality_label,
-            id: widget_id + '-locality'
+            id: widget_id + '-locality',
+            class: 'addressfield-locality'
           },
           required: _addressfield_widget_field_required(address_format, 'locality')
         });
@@ -144,7 +150,8 @@ function _addressfield_field_widget_form_country_onchange(select, widget_id, del
             theme: 'select',
             options: administrative_areas,
             attributes: {
-              id: widget_id + '-administrative_area'
+              id: widget_id + '-administrative_area',
+              class: 'addressfield-administrative-area'
             },
             required: _addressfield_widget_field_required(address_format, 'administrative_area')
           });
@@ -155,7 +162,8 @@ function _addressfield_field_widget_form_country_onchange(select, widget_id, del
           theme: 'textfield',
           attributes: {
             placeholder: address_format.postal_code_label,
-            id: widget_id + '-postal_code'
+            id: widget_id + '-postal_code',
+            class: 'addressfield-postal-code'
           },
           required: _addressfield_widget_field_required(address_format, 'postal_code')
         });
