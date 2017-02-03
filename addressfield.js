@@ -891,7 +891,7 @@ function theme_addressfield(variables) {
 
     // Allow for country specific themes.
     var function_name = 'theme_addressfield_' + variables.country;
-    if (drupalgap_function_exists(function_name)) {
+    if (function_exists(function_name)) {
       var fn = window[function_name];
       return fn(variables);
     }
