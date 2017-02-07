@@ -795,6 +795,13 @@ function addressfield_assemble_form_state_into_field(entity_type, bundle,
   }
 }
 
+/**
+ * Implements hook_addressfield_local_storage_resolve().
+ */
+function addressfield_addressfield_local_storage_resolve(result, options) {
+  addressfield_services_postprocess_inject();
+}
+
 function _addressfield_localstorage_check(options) {
   var result = _addressfield_localstorage_load(options);
   return result && _addressfield_localstorage_resolve(result, options);
@@ -825,7 +832,7 @@ function _addressfield_localstorage_load(options) {
 function _addressfield_localstorage_resolve(result, options) {
   if (options.success) {
     options.success(result);
-    addressfield_services_postprocess_inject();
+    module_invoke_all('addressfield_local_storage_resolve', result, options);
     return true;
   }
   return false;
