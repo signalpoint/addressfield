@@ -75,3 +75,15 @@ function my_module_services_postprocess(options, result) {
   }
 }
 ```
+
+## Hooks
+
+```
+/**
+ * Implements hook_addressfield_local_storage_resolve().
+ */
+function my_module_addressfield_local_storage_resolve(result, options) {
+  // Do something after address field data was loaded from local storage
+  // and passed to the callers `success` callback.
+}
+```
