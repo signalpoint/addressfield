@@ -134,10 +134,11 @@ function addressfield_field_widget_form(form, form_state, field, instance, langc
         "'" + items[delta].id + "'," +
         delta + "," +
         "'" + field.field_name + "'" +
-        ")",
-        entity_type: form.entity_type
+        ")"
       }
     };
+    if (form.entity_type) { child.attributes.entity_type = form.entity_type; }
+    if (form.bundle) { child.attributes.bundle = form.bundle; }
     if (empty(default_country) && !instance.required) {
       child.options[''] = '- None -';
     }
@@ -201,7 +202,7 @@ function addressfield_field_widget_form(form, form_state, field, instance, langc
  */
 function _addressfield_field_widget_form_country_pageshow(options) {
   try {
-    country_get_list({
+    addressfield_country_get_list({
       success: function(countries) {
 
         // Add each country to the drop down.
@@ -219,22 +220,28 @@ function _addressfield_field_widget_form_country_pageshow(options) {
             typeof _address_field_items[options.field_name] !== 'undefined' &&
             typeof _address_field_items[options.field_name][parseInt(options.delta)] !== 'undefined'
         ) {
-          var item = _address_field_items[options.field_name][parseInt(options.delta)].item;
-          var select = $('#' + options.country_widget_id);
-          select.val(item.country).selectmenu('refresh', true).change();
+          setTimeout(function () {
+            var item = _address_field_items[options.field_name][parseInt(options.delta)].item;
+            var select = $('#' + options.country_widget_id);
+            select.val(item.country).selectmenu('refresh', true).change();
+          }, 1);
         }
 
         // We didn't have an existing country, but if we have a default
         // country use it and fire the change event for the country select.
         else if (!empty(options.default_country)) {
-          $('#' + options.country_widget_id).val(options.default_country).selectmenu('refresh', true).change();
+          setTimeout(function () {
+            $('#' + options.country_widget_id).val(options.default_country).selectmenu('refresh', true).change();
+          }, 1);
         }
 
         // We don't have an existing country, and we don't have a default
         // country, so if this field is required immediately trigger the
         // change event on the first available country.
         else if (empty(options.default_country) && options.required) {
-          $('#' + options.country_widget_id).selectmenu('refresh', true).change();
+          setTimeout(function () {
+            $('#' + options.country_widget_id).selectmenu('refresh', true).change();
+          }, 1);
         }
 
       }
@@ -581,9 +588,11 @@ function _addressfield_field_widget_form_country_onchange(select, widget_id, del
         var html = '';
         var components = [];
 
-        // Grab the field instance.
-        var instance = field_name.indexOf('field_') != -1 ?
-            drupalgap_field_info_instance($(select).attr('entity_type'), field_name) : null;
+        // Try to grab the field instance.
+        var entityType = $(select).attr('entity_type');
+        var bundle = $(select).attr('bundle');
+        var instance = entityType && bundle && field_name.indexOf('field_') != -1 ?
+            drupalgap_field_info_instance(entityType, field_name, bundle) : null;
 
         //console.log(address_format, administrative_areas, instance, _addressfield_elements);
 
@@ -721,6 +730,25 @@ function _addressfield_field_widget_form_country_onchange(select, widget_id, del
   catch (error) { console.log('_addressfield_field_widget_form_country_onchange - ' + error); }
 }
 
+function addressfield_services_postprocess_inject() {
+  // @TODO replace with call to addressfield_inject_components()...?
+  var components = addressfield_get_components();
+  $.each(_address_field_items, function(field_name, items) {
+    $.each(items, function(delta, object) {
+      var id = object.id;
+      var item = object.item;
+      $.each(components, function(index, component) {
+        if (component == 'country') { return; } // skip country
+        var selector = '#' + id + '-' + component;
+        $(selector).val(item[component]);
+        if (component == 'administrative_area') {
+          $(selector).selectmenu('refresh', true).change();
+        }
+      });
+    });
+  });
+}
+
 /**
  * Implements hook_field_info_instance_add_to_form().
  */
@@ -735,32 +763,16 @@ function addressfield_field_info_instance_add_to_form(entity_type, bundle, form,
  * Implements hook_services_postprocess().
  */
 function addressfield_services_postprocess(options, result) {
-  try {
-    // When we have an existing value in an address field, we use this hook to
-    // place the values into the widget after its been rendered.
-    if (
-        options.service == 'services_addressfield' &&
-        options.resource == 'get_address_format_and_administrative_areas' &&
-        !_address_field_new_entity
-    ) {
-      var components = addressfield_get_components();
-      $.each(_address_field_items, function(field_name, items) {
-        $.each(items, function(delta, object) {
-          var id = object.id;
-          var item = object.item;
-          $.each(components, function(index, component) {
-            if (component == 'country') { return; } // skip country
-            var selector = '#' + id + '-' + component;
-            $(selector).val(item[component]);
-            if (component == 'administrative_area') {
-              $(selector).selectmenu('refresh', true).change();
-            }
-          });
-        });
-      });
-    }
-  }
-  catch (error) { console.log('addressfield_services_postprocess - ' + error); }
+  // Save results to local store.
+  if (options.service == 'services_addressfield') { _addressfield_localstorage_save(options, result); }
+
+  // When we have an existing value in an address field, we use this hook to
+  // place the values into the widget after its been rendered.
+  if (
+      options.service == 'services_addressfield' &&
+      options.resource == 'get_address_format_and_administrative_areas' &&
+      !_address_field_new_entity
+  ) { addressfield_services_postprocess_inject(); }
 }
 
 /**
@@ -783,51 +795,93 @@ function addressfield_assemble_form_state_into_field(entity_type, bundle,
   }
 }
 
-function country_get_list(options) {
-  try {
-    options.method = 'POST';
-    options.path = 'services_addressfield/country_get_list.json';
-    options.service = 'services_addressfield';
-    options.resource = 'country_get_list';
-    Drupal.services.call(options);
+function _addressfield_localstorage_check(options) {
+  var result = _addressfield_localstorage_load(options);
+  return result && _addressfield_localstorage_resolve(result, options);
+}
+
+function _addressfield_localstorage_key(options) {
+  switch (options.resource) {
+    case 'country_get_list': return 'addressfield_' + options.resource; break;
+    case 'get_address_format':
+    case 'get_administrative_areas':
+    case 'get_address_format_and_administrative_areas':
+        if (options.data) {
+          var data = JSON.parse(options.data);
+          var key = 'addressfield_' + options.resource;
+          if (data.country_code) { key += '_' + data.country_code; }
+          return key;
+        }
+      break;
   }
-  catch (error) { console.log('country_get_list - ' + error); }
+  return options.path;
+}
+
+function _addressfield_localstorage_load(options) {
+  var result = window.localStorage.getItem(_addressfield_localstorage_key(options));
+  return result ? JSON.parse(result) : null;
+}
+
+function _addressfield_localstorage_resolve(result, options) {
+  if (options.success) {
+    options.success(result);
+    addressfield_services_postprocess_inject();
+    return true;
+  }
+  return false;
+}
+
+function _addressfield_localstorage_save(options, result) {
+  window.localStorage.setItem(_addressfield_localstorage_key(options), JSON.stringify(result));
+}
+
+/**
+ *
+ * @param options
+ * @deprecated
+ */
+function country_get_list(options) {
+  console.log('WARNING: country_get_list() is deprecated, use addressfield_country_get_list() instead!');
+  return addressfield_country_get_list(options);
+}
+
+function addressfield_country_get_list(options) {
+  options.method = 'POST';
+  options.path = 'services_addressfield/country_get_list.json';
+  options.service = 'services_addressfield';
+  options.resource = 'country_get_list';
+  if (_addressfield_localstorage_check(options)) { return; }
+  Drupal.services.call(options);
 }
 
 function addressfield_get_address_format(country_code, options) {
-  try {
-    options.data = JSON.stringify({ country_code: country_code });
-    options.method = 'POST';
-    options.path = 'services_addressfield/get_address_format.json';
-    options.service = 'services_addressfield';
-    options.resource = 'get_address_format';
-    Drupal.services.call(options);
-  }
-  catch (error) { console.log('addressfield_get_address_format - ' + error); }
+  options.data = JSON.stringify({ country_code: country_code });
+  options.method = 'POST';
+  options.path = 'services_addressfield/get_address_format.json';
+  options.service = 'services_addressfield';
+  options.resource = 'get_address_format';
+  if (_addressfield_localstorage_check(options)) { return; }
+  Drupal.services.call(options);
 }
 
 function addressfield_get_administrative_areas(country_code, options) {
-  try {
-    options.data = JSON.stringify({ country_code: country_code });
-    options.method = 'POST';
-    options.path = 'services_addressfield/get_administrative_areas.json';
-    options.service = 'services_addressfield';
-    options.resource = 'get_administrative_areas';
-    Drupal.services.call(options);
-  }
-  catch (error) { console.log('addressfield_get_administrative_areas - ' + error); }
+  options.data = JSON.stringify({ country_code: country_code });
+  options.method = 'POST';
+  options.path = 'services_addressfield/get_administrative_areas.json';
+  options.service = 'services_addressfield';
+  options.resource = 'get_administrative_areas';
+  if (_addressfield_localstorage_check(options)) { return; }
+  Drupal.services.call(options);
 }
 
 function addressfield_get_address_format_and_administrative_areas(country_code, options) {
-  try {
-    options.data = JSON.stringify({ country_code: country_code });
-    options.method = 'POST';
-    options.path = 'services_addressfield/get_address_format_and_administrative_areas.json';
-    options.service = 'services_addressfield';
-    options.resource = 'get_address_format_and_administrative_areas';
-    Drupal.services.call(options);
-  }
-  catch (error) { console.log('addressfield_get_address_format_and_administrative_areas - ' + error); }
+  options.data = JSON.stringify({ country_code: country_code });
+  options.method = 'POST';
+  options.path = 'services_addressfield/get_address_format_and_administrative_areas.json';
+  options.service = 'services_addressfield';
+  options.resource = 'get_address_format_and_administrative_areas';
+  if (_addressfield_localstorage_check(options)) { return; }
+  Drupal.services.call(options);
 }
 
 /**
