@@ -43,3 +43,10 @@ function addressfield_assemble_form_state_into_field(entity_type, bundle,
     console.log('hook_assemble_form_state_into_field - ' + error);
   }
 }
+
+/**
+ * Implements hook_addressfield_local_storage_resolve().
+ */
+function addressfield_addressfield_local_storage_resolve(result, options) {
+  addressfield_services_postprocess_inject();
+}

@@ -28,7 +28,7 @@ function _addressfield_localstorage_load(options) {
 function _addressfield_localstorage_resolve(result, options) {
   if (options.success) {
     options.success(result);
-    addressfield_services_postprocess_inject();
+    module_invoke_all('addressfield_local_storage_resolve', result, options);
     return true;
   }
   return false;
