@@ -43,9 +43,11 @@ function _addressfield_field_widget_form_country_onchange(select, widget_id, del
         var html = '';
         var components = [];
 
-        // Grab the field instance.
-        var instance = field_name.indexOf('field_') != -1 ?
-            drupalgap_field_info_instance($(select).attr('entity_type'), field_name) : null;
+        // Try to grab the field instance.
+        var entityType = $(select).attr('entity_type');
+        var bundle = $(select).attr('bundle');
+        var instance = entityType && bundle && field_name.indexOf('field_') != -1 ?
+            drupalgap_field_info_instance(entityType, field_name, bundle) : null;
 
         //console.log(address_format, administrative_areas, instance, _addressfield_elements);
 
@@ -181,4 +183,23 @@ function _addressfield_field_widget_form_country_onchange(select, widget_id, del
     });
   }
   catch (error) { console.log('_addressfield_field_widget_form_country_onchange - ' + error); }
+}
+
+function addressfield_services_postprocess_inject() {
+  // @TODO replace with call to addressfield_inject_components()...?
+  var components = addressfield_get_components();
+  $.each(_address_field_items, function(field_name, items) {
+    $.each(items, function(delta, object) {
+      var id = object.id;
+      var item = object.item;
+      $.each(components, function(index, component) {
+        if (component == 'country') { return; } // skip country
+        var selector = '#' + id + '-' + component;
+        $(selector).val(item[component]);
+        if (component == 'administrative_area') {
+          $(selector).selectmenu('refresh', true).change();
+        }
+      });
+    });
+  });
 }

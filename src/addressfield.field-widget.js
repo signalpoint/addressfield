@@ -71,10 +71,11 @@ function addressfield_field_widget_form(form, form_state, field, instance, langc
         "'" + items[delta].id + "'," +
         delta + "," +
         "'" + field.field_name + "'" +
-        ")",
-        entity_type: form.entity_type
+        ")"
       }
     };
+    if (form.entity_type) { child.attributes.entity_type = form.entity_type; }
+    if (form.bundle) { child.attributes.bundle = form.bundle; }
     if (empty(default_country) && !instance.required) {
       child.options[''] = '- None -';
     }
@@ -138,7 +139,7 @@ function addressfield_field_widget_form(form, form_state, field, instance, langc
  */
 function _addressfield_field_widget_form_country_pageshow(options) {
   try {
-    country_get_list({
+    addressfield_country_get_list({
       success: function(countries) {
 
         // Add each country to the drop down.
@@ -156,22 +157,28 @@ function _addressfield_field_widget_form_country_pageshow(options) {
             typeof _address_field_items[options.field_name] !== 'undefined' &&
             typeof _address_field_items[options.field_name][parseInt(options.delta)] !== 'undefined'
         ) {
-          var item = _address_field_items[options.field_name][parseInt(options.delta)].item;
-          var select = $('#' + options.country_widget_id);
-          select.val(item.country).selectmenu('refresh', true).change();
+          setTimeout(function () {
+            var item = _address_field_items[options.field_name][parseInt(options.delta)].item;
+            var select = $('#' + options.country_widget_id);
+            select.val(item.country).selectmenu('refresh', true).change();
+          }, 1);
         }
 
         // We didn't have an existing country, but if we have a default
         // country use it and fire the change event for the country select.
         else if (!empty(options.default_country)) {
-          $('#' + options.country_widget_id).val(options.default_country).selectmenu('refresh', true).change();
+          setTimeout(function () {
+            $('#' + options.country_widget_id).val(options.default_country).selectmenu('refresh', true).change();
+          }, 1);
         }
 
         // We don't have an existing country, and we don't have a default
         // country, so if this field is required immediately trigger the
         // change event on the first available country.
         else if (empty(options.default_country) && options.required) {
-          $('#' + options.country_widget_id).selectmenu('refresh', true).change();
+          setTimeout(function () {
+            $('#' + options.country_widget_id).selectmenu('refresh', true).change();
+          }, 1);
         }
 
       }
