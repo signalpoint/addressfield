@@ -31,11 +31,12 @@ function _addressfield_field_widget_form_country_onchange(select, widget_id, del
     var country_code = $(select).val();
     addressfield_get_address_format_and_administrative_areas(country_code, {
       success: function(results) {
+        //console.log('results', results);
 
         var address_format = results.address_format;
         var administrative_areas = results.administrative_areas;
-        //console.log(address_format);
-        //console.log(administrative_areas);
+        //console.log('address_format', address_format);
+        //console.log('administrative_areas', administrative_areas);
 
         // Iterate over each "used_fields" on the address format and add them
         // to the widget. Some may or may not be required, and may have custom
@@ -49,7 +50,9 @@ function _addressfield_field_widget_form_country_onchange(select, widget_id, del
         var instance = entityType && bundle && field_name.indexOf('field_') != -1 ?
             drupalgap_field_info_instance(entityType, field_name, bundle) : null;
 
-        //console.log(address_format, administrative_areas, instance, _addressfield_elements);
+        // If there is no instance, then this is someone adding their own address field to a custom form. If that's the
+        // case then clear out the required components array.
+        if (!instance) { address_format.required_fields = []; }
 
         // @TODO - need to add support for name components!
 
@@ -148,14 +151,32 @@ function _addressfield_field_widget_form_country_onchange(select, widget_id, del
 
         // administrative_area
         if (administrative_areas) {
+
+          // Sometimes the ' ' label provided by Drupal's Address Field JSON doesn't land at the front of the object
+          // causing a the ' -- ' selection option to be in the middle of the select list, which is terrible for UX. So
+          // we make our own curated select list options by making sure the the empty selection is always at the top of
+          // the list. Also replace the ' ' key provided by Drupal Address Field with a '' or else e.g. Alabama will be
+          // selected by default.
+          var _administrativeAreas = {};
+          if (administrative_areas[' ']) {
+            _administrativeAreas[''] = country_code == 'US' ? '-- ' + t('State') + ' --' : administrative_areas[' '];
+          }
+          $.each(administrative_areas, function(adminAreaValue, adminAreaLabel) {
+            if (adminAreaValue == ' ') { return; }
+            _administrativeAreas[adminAreaValue] = adminAreaLabel;
+          });
+
+          var required = _addressfield_widget_field_required(address_format, 'administrative_area');
+
           components.push({
             theme: 'select',
-            options: administrative_areas,
+            options: _administrativeAreas,
             attributes: {
               id: widget_id + '-administrative_area',
               class: 'addressfield-administrative-area'
             },
-            required: _addressfield_widget_field_required(address_format, 'administrative_area')
+            required: required,
+            value: ''
           });
         }
 
