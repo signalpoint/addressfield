@@ -573,6 +573,8 @@ function _addressfield_field_widget_form_country_onchange(select, widget_id, del
   try {
     //console.log('_addressfield_field_widget_form_country_onchange', arguments);
     var variables = _addressfield_elements[widget_id];
+    var hasDataTheme = !!variables.attributes['data-theme'];
+    var dataTheme = hasDataTheme ? variables.attributes['data-theme'] : 'a';
     var country_code = $(select).val();
     addressfield_get_address_format_and_administrative_areas(country_code, {
       success: function(results) {
@@ -626,7 +628,8 @@ function _addressfield_field_widget_form_country_onchange(select, widget_id, del
             attributes: {
               placeholder: t('Full name'),
               id: widget_id + '-name_line',
-              class: 'addressfield-name-line'
+              class: 'addressfield-name-line',
+              'data-theme': dataTheme
             },
             required: true
           });
@@ -639,7 +642,8 @@ function _addressfield_field_widget_form_country_onchange(select, widget_id, del
             attributes: {
               placeholder: t('First name'),
               id: widget_id + '-first_name',
-              class: 'addressfield-first-name'
+              class: 'addressfield-first-name',
+              'data-theme': dataTheme
             },
             required: true
           });
@@ -652,7 +656,8 @@ function _addressfield_field_widget_form_country_onchange(select, widget_id, del
             attributes: {
               placeholder: t('Last name'),
               id: widget_id + '-last_name',
-              class: 'addressfield-last-name'
+              class: 'addressfield-last-name',
+              'data-theme': dataTheme
             },
             required: true
           });
@@ -665,7 +670,8 @@ function _addressfield_field_widget_form_country_onchange(select, widget_id, del
             attributes: {
               placeholder: t('Address 1'),
               id: widget_id + '-thoroughfare',
-              class: 'addressfield-thoroughfare'
+              class: 'addressfield-thoroughfare',
+              'data-theme': dataTheme
             },
             required: true
           });
@@ -678,7 +684,8 @@ function _addressfield_field_widget_form_country_onchange(select, widget_id, del
             attributes: {
               placeholder: t('Address 2'),
               id: widget_id + '-premise',
-              class: 'addressfield-premise'
+              class: 'addressfield-premise',
+              'data-theme': dataTheme
             }
           });
         }
@@ -689,7 +696,8 @@ function _addressfield_field_widget_form_country_onchange(select, widget_id, del
           attributes: {
             placeholder: address_format.locality_label,
             id: widget_id + '-locality',
-            class: 'addressfield-locality'
+            class: 'addressfield-locality',
+            'data-theme': dataTheme
           },
           required: _addressfield_widget_field_required(address_format, 'locality')
         });
@@ -718,7 +726,8 @@ function _addressfield_field_widget_form_country_onchange(select, widget_id, del
             options: _administrativeAreas,
             attributes: {
               id: widget_id + '-administrative_area',
-              class: 'addressfield-administrative-area'
+              class: 'addressfield-administrative-area',
+              'data-theme': dataTheme
             },
             required: required,
             value: ''
@@ -731,7 +740,8 @@ function _addressfield_field_widget_form_country_onchange(select, widget_id, del
           attributes: {
             placeholder: address_format.postal_code_label,
             id: widget_id + '-postal_code',
-            class: 'addressfield-postal-code'
+            class: 'addressfield-postal-code',
+            'data-theme': dataTheme
           },
           required: _addressfield_widget_field_required(address_format, 'postal_code')
         });
@@ -939,7 +949,8 @@ function theme_addressfield_form_element(variables) {
     options: {},
     attributes: {
       id: country_widget_id,
-      onchange: onchange
+      onchange: onchange,
+      'data-theme': !!variables.attributes['data-theme'] ?variables.attributes['data-theme'] : 'a'
     }
   };
   if (empty(variables.default_country) && !variables.required) {
