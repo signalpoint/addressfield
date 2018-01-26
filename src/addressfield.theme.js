@@ -25,7 +25,8 @@ function theme_addressfield_form_element(variables) {
     options: {},
     attributes: {
       id: country_widget_id,
-      onchange: onchange
+      onchange: onchange,
+      'data-theme': !!variables.attributes['data-theme'] ?variables.attributes['data-theme'] : 'a'
     }
   };
   if (empty(variables.default_country) && !variables.required) {
